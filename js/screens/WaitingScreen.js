@@ -54,7 +54,6 @@ export class WaitingScreen {
         let onlineCountDisplay = document.getElementById('waitingOnlinePlayersCount');
         
         if (!onlineCountDisplay) {
-            // Создаем элемент если его нет
             const gameInfo = document.querySelector('.game-info');
             if (gameInfo) {
                 onlineCountDisplay = document.createElement('div');

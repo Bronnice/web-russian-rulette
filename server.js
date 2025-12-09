@@ -6,12 +6,10 @@ const app = express();
 const server = http.createServer(app);
 const gameServer = new GameServer(server);
 
-// Настраиваем статические файлы
 app.use(express.static(__dirname));
 app.use('/css', express.static(__dirname + '/css'));
 app.use('/js', express.static(__dirname + '/js'));
 
-// Отдаем index.html по корневому маршруту
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });

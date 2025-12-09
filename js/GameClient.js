@@ -18,22 +18,18 @@ export default class GameClient {
     }
 
     init() {
-        // Инициализируем экраны
         this.nameScreen = new NameScreen(this);
         this.lobbyScreen = new LobbyScreen(this);
         this.waitingScreen = new WaitingScreen(this);
         this.gameScreen = new GameScreen(this);
         
-        // Регистрируем экраны
         this.screenManager.registerScreen('nameScreen', this.nameScreen);
         this.screenManager.registerScreen('lobbyScreen', this.lobbyScreen);
         this.screenManager.registerScreen('waitingScreen', this.waitingScreen);
         this.screenManager.registerScreen('gameScreen', this.gameScreen);
         
-        // Настраиваем обработчики сообщений
         this.setupMessageHandlers();
         
-        // Показываем начальный экран
         this.screenManager.showScreen('nameScreen');
     }
 
@@ -98,7 +94,6 @@ export default class GameClient {
             
             await this.wsClient.connect(host);
             
-            // Устанавливаем имя на сервере
             this.wsClient.send('setName', { name: this.playerName });
             
         } catch (error) {
@@ -130,7 +125,6 @@ export default class GameClient {
         this.wsClient.send('leaveGame');
     }
 
-    // Обработчики сообщений от сервера
     handleGameCreated(data) {
         this.gameId = data.gameId;
         this.playerId = data.playerId;

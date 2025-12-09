@@ -266,14 +266,12 @@ class GameServer {
         const onlinePlayers = [];
         const playersInGames = new Set();
         
-        // Собираем всех игроков, которые находятся в играх
         for (const game of this.gameManager.getActiveGames()) {
             game.players.forEach(player => {
                 playersInGames.add(player.name);
             });
         }
         
-        // Собираем всех подключенных игроков
         this.wss.clients.forEach(client => {
             if (client.readyState === 1 && client.playerName) {
                 onlinePlayers.push({
@@ -290,7 +288,7 @@ class GameServer {
         setInterval(() => {
             this.playerManager.cleanupInactiveSessions();
             this.gameManager.cleanupEmptyGames();
-        }, 60000); // Каждую минуту
+        }, 60000);
     }
 }
 

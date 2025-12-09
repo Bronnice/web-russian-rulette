@@ -1,6 +1,6 @@
 class PlayerManager {
     constructor() {
-        this.playerSessions = new Map(); // playerName -> session data
+        this.playerSessions = new Map();
     }
 
     createSession(playerName, gameId, playerId, ws) {
@@ -32,7 +32,7 @@ class PlayerManager {
         return gameManager.findGameByPlayer(playerName) !== null;
     }
 
-    cleanupInactiveSessions(timeout = 3600000) { // 1 час
+    cleanupInactiveSessions(timeout = 3600000) {
         const now = Date.now();
         for (const [playerName, session] of this.playerSessions.entries()) {
             if (now - session.lastActive > timeout) {

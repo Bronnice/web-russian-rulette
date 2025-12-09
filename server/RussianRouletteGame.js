@@ -15,7 +15,6 @@ class RussianRouletteGame {
     }
 
     addPlayer(playerId, playerName, ws) {
-        // Проверяем, не подключен ли уже игрок к этой игре
         if (this.players.some(p => p.name === playerName)) {
             const existingPlayer = this.players.find(p => p.name === playerName);
             existingPlayer.ws = ws;
@@ -31,7 +30,6 @@ class RussianRouletteGame {
                 ws: ws
             });
             
-            // Если подключился второй игрок, начинаем игру
             if (this.players.length >= 2 && !this.gameStarted) {
                 this.gameStarted = true;
                 this.currentPlayerIndex = Math.floor(Math.random() * this.players.length);
@@ -77,7 +75,6 @@ class RussianRouletteGame {
             return { error: 'Invalid target' };
         }
 
-        // Стрельба
         const result = this.chamberPosition === this.chamber;
         this.chamberPosition = (this.chamberPosition + 1) % 6;
 
@@ -100,7 +97,6 @@ class RussianRouletteGame {
             }
         }
 
-        // Определяем следующего игрока по правилам
         this.determineNextPlayer(isSelfShot, result);
 
         return {
@@ -118,14 +114,11 @@ class RussianRouletteGame {
         if (this.gameOver) return;
 
         if (isSelfShot && !hitResult) {
-            // Выстрел в себя, холостой патрон - ход остается
             this.lastShotSelf = true;
         } else if (!isSelfShot && !hitResult) {
-            // Выстрел в другого, холостой патрон - ход переходит
             this.lastShotSelf = false;
             this.moveToNextAlivePlayer();
         } else if (hitResult) {
-            // Был смертельный выстрел
             this.lastShotSelf = false;
             this.moveToNextAlivePlayer();
         }
@@ -182,7 +175,7 @@ class RussianRouletteGame {
 
     broadcastToPlayers(message) {
         this.players.forEach(player => {
-            if (player.ws && player.ws.readyState === 1) { // WebSocket.OPEN
+            if (player.ws && player.ws.readyState === 1) {
                 try {
                     player.ws.send(JSON.stringify(message));
                 } catch (error) {

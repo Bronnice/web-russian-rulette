@@ -26,15 +26,12 @@ export class GameScreen {
     }
 
     updateGameState(state) {
-        // Обновляем номер раунда
         if (state.roundNumber) {
             document.getElementById('roundNumber').textContent = state.roundNumber;
         }
         
-        // Обновляем список игроков
         this.updatePlayersStatus(state);
         
-        // Обновляем информацию о текущем игроке
         this.updateCurrentPlayerInfo(state);
     }
 

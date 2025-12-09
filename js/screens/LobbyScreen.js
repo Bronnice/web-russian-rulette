@@ -59,7 +59,6 @@ export class LobbyScreen {
         
         if (!container) return;
         
-        // Обновляем количество онлайн игроков в начало списка
         this.updateOnlinePlayersCount(onlinePlayers);
         
         if (!games || games.length === 0) {
@@ -94,7 +93,6 @@ export class LobbyScreen {
         let onlineCountContainer = document.getElementById('onlinePlayersCountContainer');
         
         if (!onlineCountContainer) {
-            // Создаем контейнер если его нет в начале с��иска
             const lobbyList = document.querySelector('.lobby-list');
             if (lobbyList) {
                 onlineCountContainer = document.createElement('div');
@@ -102,7 +100,6 @@ export class LobbyScreen {
                 onlineCountContainer.style.marginBottom = '15px';
                 onlineCountContainer.style.paddingBottom = '15px';
                 onlineCountContainer.style.borderBottom = '2px solid #17a2b8';
-                // Вставляем в начало
                 lobbyList.insertBefore(onlineCountContainer, lobbyList.firstChild);
             }
         }
@@ -150,7 +147,6 @@ export class LobbyScreen {
             }
         `;
         
-        // Добавляем обработчик события для кнопки присоединения
         const joinBtn = gameElement.querySelector('.join-game-btn');
         if (joinBtn) {
             joinBtn.addEventListener('click', () => {
