@@ -140,6 +140,9 @@ export default class GameClient {
         if (data.state) {
             this.waitingScreen.updatePlayersList(data.state.players);
         }
+        if (data.onlinePlayers) {
+            this.waitingScreen.updateOnlinePlayersCount(data.onlinePlayers);
+        }
         
         this.screenManager.showScreen('waitingScreen');
     }
@@ -185,7 +188,7 @@ export default class GameClient {
     }
 
     handleLobbyUpdate(data) {
-        this.lobbyScreen.updateLobby(data.games);
+        this.lobbyScreen.updateLobby(data.games, data.onlinePlayers || []);
     }
 
     handleHasActiveGame(data) {
@@ -196,6 +199,9 @@ export default class GameClient {
             this.joinGame(data.gameId);
         } else {
             this.screenManager.showScreen('waitingScreen');
+            if (data.onlinePlayers) {
+                this.waitingScreen.updateOnlinePlayersCount(data.onlinePlayers);
+            }
             setTimeout(() => {
                 this.joinGame(data.gameId);
             }, 500);

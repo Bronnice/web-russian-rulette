@@ -53,11 +53,14 @@ export class LobbyScreen {
         }
     }
 
-    updateLobby(games) {
+    updateLobby(games, onlinePlayers = []) {
         const container = document.getElementById('lobbyGamesContainer');
         const noGamesMsg = document.getElementById('noGamesMessage');
         
         if (!container) return;
+        
+        // Обновляем количество онлайн игроков в начало списка
+        this.updateOnlinePlayersCount(onlinePlayers);
         
         if (!games || games.length === 0) {
             container.innerHTML = '';
@@ -85,6 +88,34 @@ export class LobbyScreen {
             const gameElement = this.createGameElement(game);
             container.appendChild(gameElement);
         });
+    }
+
+    updateOnlinePlayersCount(onlinePlayers = []) {
+        let onlineCountContainer = document.getElementById('onlinePlayersCountContainer');
+        
+        if (!onlineCountContainer) {
+            // Создаем контейнер если его нет в начале с��иска
+            const lobbyList = document.querySelector('.lobby-list');
+            if (lobbyList) {
+                onlineCountContainer = document.createElement('div');
+                onlineCountContainer.id = 'onlinePlayersCountContainer';
+                onlineCountContainer.style.marginBottom = '15px';
+                onlineCountContainer.style.paddingBottom = '15px';
+                onlineCountContainer.style.borderBottom = '2px solid #17a2b8';
+                // Вставляем в начало
+                lobbyList.insertBefore(onlineCountContainer, lobbyList.firstChild);
+            }
+        }
+        
+        if (!onlineCountContainer) return;
+        
+        const totalOnline = onlinePlayers ? onlinePlayers.length : 0;
+        
+        onlineCountContainer.innerHTML = `
+            <div style="text-align: center; padding: 10px; background-color: #e8f4f8; border-radius: 5px;">
+                <h3 style="margin: 0; color: #17a2b8; font-size: 18px;">👥 Онлайн: <strong>${totalOnline}</strong></h3>
+            </div>
+        `;
     }
 
     createGameElement(game) {

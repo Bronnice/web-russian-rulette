@@ -73,7 +73,8 @@ class GameServer {
                 type: 'hasActiveGame',
                 gameId: playerGame.game.id,
                 gameStarted: playerGame.game.gameStarted,
-                playerId: playerGame.playerId
+                playerId: playerGame.playerId,
+                onlinePlayers: this.getOnlinePlayersList()
             }));
         } else {
             ws.send(JSON.stringify({ type: 'noActiveGame' }));
@@ -83,9 +84,11 @@ class GameServer {
     handleGetLobby(ws) {
         ws.isInLobby = true;
         const lobbyList = this.gameManager.getActiveGames().map(game => game.getLobbyInfo());
+        const onlinePlayers = this.getOnlinePlayersList();
         ws.send(JSON.stringify({
             type: 'lobbyUpdate',
-            games: lobbyList
+            games: lobbyList,
+            onlinePlayers: onlinePlayers
         }));
     }
 
@@ -109,10 +112,11 @@ class GameServer {
                 gameId: game.id,
                 playerId: playerId,
                 playerName: playerName,
-                state: game.getState()
+                state: game.getState(),
+                onlinePlayers: this.getOnlinePlayersList()
             }));
             
-            this.gameManager.broadcastLobbyUpdate(this.wss);
+            this.gameManager.broadcastLobbyUpdate(this.wss, this.getOnlinePlayersList());
         }
     }
 
@@ -158,7 +162,7 @@ class GameServer {
                 state: game.getState()
             }));
             
-            this.gameManager.broadcastLobbyUpdate(this.wss);
+            this.gameManager.broadcastLobbyUpdate(this.wss, this.getOnlinePlayersList());
         } else {
             this.sendError(ws, 'Нельзя присоединиться - игра заполнена или завершена');
         }
@@ -204,7 +208,7 @@ class GameServer {
             
             this.playerManager.removeSession(playerName);
             this.gameManager.cleanupEmptyGames();
-            this.gameManager.broadcastLobbyUpdate(this.wss);
+            this.gameManager.broadcastLobbyUpdate(this.wss, this.getOnlinePlayersList());
         }
         
         ws.send(JSON.stringify({
@@ -256,6 +260,30 @@ class GameServer {
             type: 'error',
             message: message
         }));
+    }
+
+    getOnlinePlayersList() {
+        const onlinePlayers = [];
+        const playersInGames = new Set();
+        
+        // Собираем всех игроков, которые находятся в играх
+        for (const game of this.gameManager.getActiveGames()) {
+            game.players.forEach(player => {
+                playersInGames.add(player.name);
+            });
+        }
+        
+        // Собираем всех подключенных игроков
+        this.wss.clients.forEach(client => {
+            if (client.readyState === 1 && client.playerName) {
+                onlinePlayers.push({
+                    name: client.playerName,
+                    inGame: playersInGames.has(client.playerName)
+                });
+            }
+        });
+        
+        return onlinePlayers;
     }
 
     setupCleanupInterval() {

@@ -37,16 +37,22 @@ class GameManager {
         return null;
     }
 
-    broadcastLobbyUpdate(wss) {
+    broadcastLobbyUpdate(wss, onlinePlayersList = null) {
         const lobbyList = this.getActiveGames().map(game => game.getLobbyInfo());
 
         wss.clients.forEach(client => {
             if (client.readyState === 1 && client.isInLobby) {
                 try {
-                    client.send(JSON.stringify({
+                    const message = {
                         type: 'lobbyUpdate',
                         games: lobbyList
-                    }));
+                    };
+                    
+                    if (onlinePlayersList) {
+                        message.onlinePlayers = onlinePlayersList;
+                    }
+                    
+                    client.send(JSON.stringify(message));
                 } catch (error) {
                     console.error('Error sending lobby update:', error);
                 }

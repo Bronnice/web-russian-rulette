@@ -49,6 +49,32 @@ export class WaitingScreen {
         }
     }
 
+    updateOnlinePlayersCount(onlinePlayers = []) {
+        const totalOnline = onlinePlayers ? onlinePlayers.length : 0;
+        let onlineCountDisplay = document.getElementById('waitingOnlinePlayersCount');
+        
+        if (!onlineCountDisplay) {
+            // Создаем элемент если его нет
+            const gameInfo = document.querySelector('.game-info');
+            if (gameInfo) {
+                onlineCountDisplay = document.createElement('div');
+                onlineCountDisplay.id = 'waitingOnlinePlayersCount';
+                onlineCountDisplay.style.marginTop = '15px';
+                onlineCountDisplay.style.paddingTop = '15px';
+                onlineCountDisplay.style.borderTop = '1px solid #ddd';
+                gameInfo.appendChild(onlineCountDisplay);
+            }
+        }
+        
+        if (!onlineCountDisplay) return;
+        
+        onlineCountDisplay.innerHTML = `
+            <p style="margin: 0; text-align: center; color: #17a2b8; font-weight: bold;">
+                👥 Онлайн: <strong>${totalOnline}</strong> игроков
+            </p>
+        `;
+    }
+
     show() {
         this.element.classList.add('active');
     }
