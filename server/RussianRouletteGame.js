@@ -12,6 +12,11 @@ class RussianRouletteGame {
         this.gameOver = false;
         this.gameStarted = false;
         this.lastShotSelf = false;
+        
+        // Timer properties
+        this.turnTimeLimit = 10000; // 10 seconds in milliseconds
+        this.turnTimer = null;
+        this.turnStartTime = null;
     }
 
     addPlayer(playerId, playerName, ws) {
@@ -33,6 +38,7 @@ class RussianRouletteGame {
             if (this.players.length >= 2 && !this.gameStarted) {
                 this.gameStarted = true;
                 this.currentPlayerIndex = Math.floor(Math.random() * this.players.length);
+                this.startTurnTimer();
             }
             
             return true;
@@ -54,6 +60,53 @@ class RussianRouletteGame {
         return false;
     }
 
+    handlePlayerDisconnect(playerName) {
+        // Find the disconnecting player
+        const disconnectedPlayer = this.players.find(p => p.name === playerName);
+        if (!disconnectedPlayer) {
+            return null;
+        }
+
+        // Mark the disconnected player as dead
+        disconnectedPlayer.alive = false;
+
+        // Find remaining alive players
+        const alivePlayers = this.players.filter(p => p.alive);
+
+        // Clear timer when game ends
+        this.clearTurnTimer();
+
+        // If only one player remains, they win
+        if (alivePlayers.length === 1) {
+            this.gameOver = true;
+            return {
+                shot: false,
+                hit: false,
+                disconnected: true,
+                killed: disconnectedPlayer.id,
+                killedName: disconnectedPlayer.name,
+                winner: alivePlayers[0].id,
+                winnerName: alivePlayers[0].name,
+                gameOver: true,
+                message: `🏃 ${disconnectedPlayer.name} покинул игру. ${alivePlayers[0].name} побеждает!`
+            };
+        }
+
+        // If no players remain or game is already over
+        if (alivePlayers.length === 0) {
+            this.gameOver = true;
+            return {
+                shot: false,
+                hit: false,
+                disconnected: true,
+                gameOver: true,
+                message: 'Все игроки покинули игру'
+            };
+        }
+
+        return null;
+    }
+
     getCurrentPlayer() {
         if (this.players.length === 0) return null;
         return this.players[this.currentPlayerIndex];
@@ -61,6 +114,9 @@ class RussianRouletteGame {
 
     shoot(targetId, isSelfShot = false) {
         if (this.gameOver) return { gameOver: true };
+
+        // Clear the turn timer since player made a move
+        this.clearTurnTimer();
 
         const currentPlayer = this.getCurrentPlayer();
         let targetPlayer;
@@ -80,6 +136,7 @@ class RussianRouletteGame {
 
         if (result) {
             targetPlayer.alive = false;
+            this.clearTurnTimer();
             
             const alivePlayers = this.players.filter(p => p.alive);
             if (alivePlayers.length <= 1) {
@@ -98,6 +155,11 @@ class RussianRouletteGame {
         }
 
         this.determineNextPlayer(isSelfShot, result);
+
+        // Start timer for next player's turn
+        if (!this.gameOver) {
+            this.startTurnTimer();
+        }
 
         return {
             shot: true,
@@ -143,6 +205,50 @@ class RussianRouletteGame {
         }
     }
 
+    startTurnTimer() {
+        this.clearTurnTimer();
+        this.turnStartTime = Date.now();
+        
+        this.turnTimer = setTimeout(() => {
+            this.handleTurnTimeout();
+        }, this.turnTimeLimit);
+    }
+
+    clearTurnTimer() {
+        if (this.turnTimer) {
+            clearTimeout(this.turnTimer);
+            this.turnTimer = null;
+        }
+        this.turnStartTime = null;
+    }
+
+    handleTurnTimeout() {
+        if (this.gameOver) return;
+
+        const currentPlayer = this.getCurrentPlayer();
+        if (!currentPlayer) return;
+
+        // Pass turn to next player without shooting
+        this.moveToNextAlivePlayer();
+
+        // Broadcast timeout event
+        this.broadcastToPlayers({
+            type: 'turnTimeout',
+            message: `⏰ Время вышло! ${currentPlayer.name} пропустил ход.`,
+            state: this.getState()
+        });
+
+        // Start timer for next player
+        this.startTurnTimer();
+    }
+
+    getRemainingTime() {
+        if (!this.turnStartTime || this.gameOver) return 0;
+        const elapsed = Date.now() - this.turnStartTime;
+        const remaining = Math.max(0, this.turnTimeLimit - elapsed);
+        return Math.ceil(remaining / 1000); // Return seconds
+    }
+
     getState() {
         const currentPlayer = this.getCurrentPlayer();
         return {
@@ -156,7 +262,8 @@ class RussianRouletteGame {
             gameOver: this.gameOver,
             gameStarted: this.gameStarted,
             roundNumber: this.chamberPosition + 1,
-            lastShotSelf: this.lastShotSelf
+            lastShotSelf: this.lastShotSelf,
+            remainingTime: this.getRemainingTime()
         };
     }
 

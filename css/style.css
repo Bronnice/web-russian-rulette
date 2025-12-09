@@ -7,6 +7,16 @@ body {
     background-color: #f0f0f0;
 }
 
+/* Анимация пульсации для таймера */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
 .container {
     background-color: white;
     border-radius: 10px;
@@ -46,6 +56,33 @@ button:disabled {
 
 .btn-danger {
     background-color: #dc3545;
+}
+
+/* Таймер */
+.timer-container {
+    text-align: center;
+    margin: 20px 0;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.timer-label {
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.timer-display {
+    font-size: 48px;
+    font-weight: bold;
+    color: #4CAF50;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    font-family: 'Courier New', monospace;
 }
 
 .btn-danger:hover {

@@ -76,6 +76,14 @@ export default class GameClient {
             this.screenManager.showScreen('lobbyScreen');
         });
 
+        this.wsClient.on('timerUpdate', (data) => {
+            this.handleTimerUpdate(data);
+        });
+
+        this.wsClient.on('turnTimeout', (data) => {
+            this.handleTurnTimeout(data);
+        });
+
         this.wsClient.on('error', (data) => {
             console.error('Server error:', data.message);
         });
@@ -183,6 +191,21 @@ export default class GameClient {
 
     handleLobbyUpdate(data) {
         this.lobbyScreen.updateLobby(data.games, data.onlinePlayers || []);
+    }
+
+    handleTimerUpdate(data) {
+        if (this.screenManager.currentScreen === this.gameScreen) {
+            this.gameScreen.updateTimer(data.remainingTime);
+        }
+    }
+
+    handleTurnTimeout(data) {
+        if (this.screenManager.currentScreen === this.gameScreen) {
+            this.gameScreen.showTimeoutMessage(data.message);
+            if (data.state) {
+                this.gameScreen.updateGameState(data.state);
+            }
+        }
     }
 
     handleHasActiveGame(data) {

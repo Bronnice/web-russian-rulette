@@ -19,6 +19,7 @@ export class GameScreen {
     performShot(targetId) {
         this.isShooting = true;
         this.hideActionButtons();
+        this.hideTimer();
         this.showBarrelAnimation();
         
         setTimeout(() => {
@@ -78,6 +79,10 @@ export class GameScreen {
             document.getElementById('roundNumber').textContent = state.roundNumber;
         }
         
+        if (state.remainingTime !== undefined) {
+            this.updateTimer(state.remainingTime);
+        }
+        
         this.updatePlayersStatus(state);
         
         this.updateCurrentPlayerInfo(state);
@@ -103,18 +108,70 @@ export class GameScreen {
         
         if (state.gameOver) {
             document.getElementById('actionButtons').style.display = 'none';
+            this.hideTimer();
             currentInfo.innerHTML = '<p style="color:red;font-weight:bold;">Игра окончена!</p>';
         } else if (state.currentPlayer === this.gameClient.playerId) {
             this.isShooting = false;
             this.showActionButtons();
+            this.showTimer();
             currentInfo.innerHTML = '<p style="color:green;font-weight:bold;">🎯 Ваш ход! Выберите цель:</p>';
             document.getElementById('actionButtons').style.display = 'block';
             this.createShootButtons(state.players);
         } else if (state.currentPlayer) {
             document.getElementById('actionButtons').style.display = 'none';
+            this.showTimer();
             const currentPlayerName = this.getCurrentPlayerName(state);
             currentInfo.innerHTML = `<p>⏳ Ход игрока: <strong>${currentPlayerName}</strong></p>`;
         }
+    }
+
+    updateTimer(seconds) {
+        const timerElement = document.getElementById('turnTimer');
+        if (!timerElement) return;
+
+        timerElement.textContent = seconds;
+        
+        // Change color based on remaining time
+        if (seconds <= 3) {
+            timerElement.style.color = '#ff4444';
+            timerElement.style.animation = 'pulse 0.5s infinite';
+        } else if (seconds <= 5) {
+            timerElement.style.color = '#ff9800';
+            timerElement.style.animation = 'none';
+        } else {
+            timerElement.style.color = '#4CAF50';
+            timerElement.style.animation = 'none';
+        }
+    }
+
+    showTimer() {
+        const timerContainer = document.getElementById('timerContainer');
+        if (timerContainer) {
+            timerContainer.style.display = 'block';
+        }
+    }
+
+    hideTimer() {
+        const timerContainer = document.getElementById('timerContainer');
+        if (timerContainer) {
+            timerContainer.style.display = 'none';
+        }
+    }
+
+    showTimeoutMessage(message) {
+        const resultDiv = document.getElementById('shotResultDisplay');
+        if (!resultDiv) return;
+        
+        resultDiv.className = 'shot-result shot-miss';
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+            <div style="font-size: 36px;">⏰</div>
+            <div>${message}</div>
+        `;
+        
+        setTimeout(() => {
+            resultDiv.style.display = 'none';
+        }, 3000);
     }
 
     getPlayerClass(player, currentPlayerId) {
@@ -199,7 +256,12 @@ export class GameScreen {
     }
 
     getResultHTML(result) {
-        if (result.hit) {
+        if (result.disconnected) {
+            return `
+                <div style="font-size: 36px;">🏃</div>
+                <div>${result.message || 'Игрок покинул игру'}</div>
+            `;
+        } else if (result.hit) {
             return `
                 <div style="font-size: 36px;">💥</div>
                 <div>${result.message || 'Бах! Выстрел был смертельным!'}</div>
@@ -255,6 +317,7 @@ export class GameScreen {
         this.element.classList.add('active');
         document.getElementById('shotResultDisplay').style.display = 'none';
         document.getElementById('gameResult').style.display = 'none';
+        this.showTimer();
     }
 
     hide() {

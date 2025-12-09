@@ -10,6 +10,7 @@ class GameServer {
         
         this.setupWebSocket();
         this.setupCleanupInterval();
+        this.setupTimerBroadcast();
     }
 
     setupWebSocket() {
@@ -194,11 +195,32 @@ class GameServer {
         if (session) {
             const game = this.gameManager.getGame(session.gameId);
             if (game) {
-                game.removePlayer(playerName);
-                game.broadcastToPlayers({
-                    type: 'stateUpdate',
-                    state: game.getState()
-                });
+                // Check if game has started and is not over
+                if (game.gameStarted && !game.gameOver) {
+                    // End game with remaining player as winner
+                    const result = game.handlePlayerDisconnect(playerName);
+                    
+                    if (result && result.gameOver) {
+                        game.broadcastToPlayers({
+                            type: 'shotResult',
+                            result: result,
+                            state: game.getState()
+                        });
+                        
+                        // Schedule game cleanup
+                        setTimeout(() => {
+                            this.gameManager.removeGame(session.gameId);
+                            this.gameManager.broadcastLobbyUpdate(this.wss);
+                        }, 30000);
+                    }
+                } else {
+                    // Game hasn't started yet, just remove player
+                    game.removePlayer(playerName);
+                    game.broadcastToPlayers({
+                        type: 'stateUpdate',
+                        state: game.getState()
+                    });
+                }
             }
             
             this.playerManager.removeSession(playerName);
@@ -225,11 +247,32 @@ class GameServer {
             if (session) {
                 const game = this.gameManager.getGame(session.gameId);
                 if (game) {
-                    game.removePlayer(playerName);
-                    game.broadcastToPlayers({
-                        type: 'stateUpdate',
-                        state: game.getState()
-                    });
+                    // Check if game has started and is not over
+                    if (game.gameStarted && !game.gameOver) {
+                        // End game with remaining player as winner
+                        const result = game.handlePlayerDisconnect(playerName);
+                        
+                        if (result && result.gameOver) {
+                            game.broadcastToPlayers({
+                                type: 'shotResult',
+                                result: result,
+                                state: game.getState()
+                            });
+                            
+                            // Schedule game cleanup
+                            setTimeout(() => {
+                                this.gameManager.removeGame(session.gameId);
+                                this.gameManager.broadcastLobbyUpdate(this.wss);
+                            }, 30000);
+                        }
+                    } else {
+                        // Game hasn't started yet, just remove player
+                        game.removePlayer(playerName);
+                        game.broadcastToPlayers({
+                            type: 'stateUpdate',
+                            state: game.getState()
+                        });
+                    }
                 }
                 
                 this.playerManager.removeSession(playerName);
@@ -284,6 +327,21 @@ class GameServer {
             this.playerManager.cleanupInactiveSessions();
             this.gameManager.cleanupEmptyGames();
         }, 60000);
+    }
+
+    setupTimerBroadcast() {
+        // Broadcast timer updates every second
+        setInterval(() => {
+            this.gameManager.getActiveGames().forEach(game => {
+                if (game.gameStarted && !game.gameOver) {
+                    const remainingTime = game.getRemainingTime();
+                    game.broadcastToPlayers({
+                        type: 'timerUpdate',
+                        remainingTime: remainingTime
+                    });
+                }
+            });
+        }, 1000);
     }
 }
 
