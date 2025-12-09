@@ -1,3 +1,10 @@
 *-lock.json
 /node_modules
 .vscode
+
+# SSL certificates (never commit private keys!)
+ssl/
+*.pem
+*.key
+*.crt
+*.cert
