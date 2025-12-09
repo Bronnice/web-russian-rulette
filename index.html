@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Русская Рулетка - Онлайн</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Русская Рулетка - Онлайн</h1>
+        
+        <!-- Экран выбора имени -->
+        <div id="nameScreen" class="screen active">
+            <h2>Добро пожаловать!</h2>
+            <div class="name-input">
+                <label for="playerNameInput">Введите ваше имя:</label>
+                <input type="text" id="playerNameInput" placeholder="Ваше имя" maxlength="20" value="Игрок">
+                <button id="setNameBtn">Продолжить</button>
+            </div>
+            
+            <div class="game-rules">
+                <h4>📜 Новые правила игры:</h4>
+                <ul>
+                    <li>🎲 <strong>Случайный первый ход</strong> - кто стреляет первым выбирается случайно</li>
+                    <li>🔫 <strong>Выстрел в себя</strong> - если патрон холостой, ход остается у вас</li>
+                    <li>🎯 <strong>Выстрел в соперника</strong> - если патрон холостой, ход переходит сопернику</li>
+                    <li>💀 <strong>Смертельный выстрел</strong> - игра заканчивается при попадании</li>
+                    <li>👥 <strong>2 игрока</strong> - игра рассчитана на двоих участников</li>
+                </ul>
+            </div>
+            
+            <div id="nameError" class="error"></div>
+        </div>
+        
+        <!-- Экран лобби -->
+        <div id="lobbyScreen" class="screen">
+            <h2>Лобби игр</h2>
+            
+            <div class="lobby-container">
+                <div class="lobby-list">
+                    <button id="refreshLobbyBtn" class="refresh-btn">🔄 Обновить список</button>
+                    <div id="lobbyGamesContainer">
+                        <p>Загрузка списка игр...</p>
+                    </div>
+                    <div id="noGamesMessage" style="display: none;"></div>
+                </div>
+                
+                <div class="create-game-panel">
+                    <h3>Создать игру</h3>
+                    <p>Создайте новую игру и пригласите друга</p>
+                    <button id="createLobbyGameBtn">🎮 Создать новую игру (2 игрока)</button>
+                    
+                    <div class="game-rules" style="margin-top: 20px; font-size: 12px;">
+                        <p><strong>Правила:</strong></p>
+                        <ul>
+                            <li>Первый игрок выбирается случайно</li>
+                            <li>Выстрел в себя = повторный ход при промахе</li>
+                            <li>Выстрел в соперника = передача хода при промахе</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
+                        <h3>Присоединиться по ID</h3>
+                        <input type="text" id="directGameIdInput" placeholder="Введите ID игры">
+                        <button id="directJoinBtn">Присоединиться</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="lobbyError" class="error"></div>
+        </div>
+        
+        <!-- Экран ожидания игроков -->
+        <div id="waitingScreen" class="screen">
+            <h2>Ожидание соперника</h2>
+            <div class="game-info">
+                <p>ID вашей игры: <strong id="gameIdDisplay"></strong></p>
+                <p>Ваше имя: <strong id="myPlayerNameDisplay"></strong></p>
+                <p>Поделитесь ID игры с другом для присоединения</p>
+                <button id="copyGameIdBtn">📋 Копировать ID игры</button>
+                <button id="backToLobbyBtn" class="btn-warning">← Вернуться в лобби</button>
+            </div>
+            
+            <div class="revolver">🔫</div>
+            
+            <div id="playersList">
+                <h3>Ожидание второго игрока (1/2):</h3>
+                <div id="playersContainer"></div>
+            </div>
+            
+            <div class="info-message">
+                ⏳ Ожидаем присоединения второго игрока. Игра начнется автоматически!
+            </div>
+        </div>
+        
+        <!-- Игровой экран -->
+        <div id="gameScreen" class="screen">
+            <h2>🎮 Игра началась!</h2>
+            
+            <div class="round-info">
+                Раунд: <span id="roundNumber">1</span> | Патрон: <span id="chamberPosition">1</span>/6
+            </div>
+            
+            <div class="game-info">
+                <p>Ваше имя: <strong id="playerNameDisplay"></strong></p>
+                <p>ID игры: <strong id="currentGameIdDisplay"></strong></p>
+                <button id="leaveGameBtn" class="btn-danger">🏃 Покинуть игру</button>
+            </div>
+            
+            <div id="gameState">
+                <h3>Состояние игры:</h3>
+                <div id="playersStatus"></div>
+                <div id="currentPlayerInfo" class="info-message"></div>
+            </div>
+            
+            <div id="shotResultDisplay" class="shot-result" style="display:none;"></div>
+            
+            <div id="actionButtons" class="action-buttons" style="display:none;">
+                <h3>🎯 Ваш ход! Выберите действие:</h3>
+                <button id="shootSelfBtn" class="btn-danger">💀 Выстрелить в себя</button>
+                <p style="margin: 10px 0; font-style: italic; color: #666;">
+                    При промахе: ход останется у вас
+                </p>
+                <div id="shootOthers">
+                    <h4>🎯 Или выстрелить в соперника:</h4>
+                </div>
+                <p style="margin: 10px 0; font-style: italic; color: #666;">
+                    При промахе: ход перейдет сопернику
+                </p>
+            </div>
+            
+            <div id="gameResult" class="shot-result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script type="module" src="js/client.js"></script>
+</body>
+</html>
