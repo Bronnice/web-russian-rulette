@@ -140,6 +140,14 @@ class GameServer {
             ws.isInLobby = false;
             this.playerManager.createSession(playerName, game.id, playerId, ws);
             
+            ws.send(JSON.stringify({
+                type: 'joinedGame',
+                playerId: playerId,
+                playerName: playerName,
+                gameId: game.id,
+                state: game.getState()
+            }));
+            
             if (game.gameStarted) {
                 const firstPlayer = game.getCurrentPlayer();
                 game.broadcastToPlayers({
@@ -148,19 +156,6 @@ class GameServer {
                     message: `🎲 Случайно выбран первый игрок: ${firstPlayer.name}`
                 });
             }
-            
-            game.broadcastToPlayers({
-                type: 'stateUpdate',
-                state: game.getState()
-            });
-            
-            ws.send(JSON.stringify({
-                type: 'joinedGame',
-                playerId: playerId,
-                playerName: playerName,
-                gameId: game.id,
-                state: game.getState()
-            }));
             
             this.gameManager.broadcastLobbyUpdate(this.wss, this.getOnlinePlayersList());
         } else {

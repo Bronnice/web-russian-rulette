@@ -101,6 +101,7 @@ button:disabled {
 
 .action-buttons {
     margin: 20px 0;
+    transition: opacity 0.3s ease;
 }
 
 /* Формы */
@@ -346,4 +347,27 @@ input[type="text"] {
 .online-player-badge:hover {
     background-color: #c3e6cb;
     box-shadow: 0 2px 4px rgba(21, 87, 36, 0.2);
+}
+
+.barrel-animation {
+    text-align: center;
+    margin: 30px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.barrel-image {
+    width: 150px;
+    height: 150px;
+    animation: barrelSpin 1s linear;
+}
+
+@keyframes barrelSpin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(60deg);
+    }
 }

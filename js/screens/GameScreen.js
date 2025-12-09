@@ -2,6 +2,7 @@ export class GameScreen {
     constructor(gameClient) {
         this.gameClient = gameClient;
         this.element = document.getElementById('gameScreen');
+        this.isShooting = false;
         this.init();
     }
 
@@ -11,7 +12,54 @@ export class GameScreen {
     }
 
     shootSelf() {
-        this.gameClient.shoot(this.gameClient.playerId);
+        if (this.isShooting) return;
+        this.performShot(this.gameClient.playerId);
+    }
+
+    performShot(targetId) {
+        this.isShooting = true;
+        this.hideActionButtons();
+        this.showBarrelAnimation();
+        
+        setTimeout(() => {
+            this.gameClient.shoot(targetId);
+        }, 1000);
+    }
+
+    hideActionButtons() {
+        const actionButtons = document.getElementById('actionButtons');
+        if (actionButtons) {
+            actionButtons.style.opacity = '0.5';
+            actionButtons.style.pointerEvents = 'none';
+            
+            const buttons = actionButtons.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+        }
+    }
+
+    showActionButtons() {
+        const actionButtons = document.getElementById('actionButtons');
+        if (actionButtons) {
+            actionButtons.style.opacity = '1';
+            actionButtons.style.pointerEvents = 'auto';
+            
+            const buttons = actionButtons.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = false);
+        }
+    }
+
+    showBarrelAnimation() {
+        const barrelAnimation = document.getElementById('barrelAnimation');
+        if (barrelAnimation) {
+            barrelAnimation.style.display = 'flex';
+        }
+    }
+
+    hideBarrelAnimation() {
+        const barrelAnimation = document.getElementById('barrelAnimation');
+        if (barrelAnimation) {
+            barrelAnimation.style.display = 'none';
+        }
     }
 
     leaveGame() {
@@ -57,6 +105,8 @@ export class GameScreen {
             document.getElementById('actionButtons').style.display = 'none';
             currentInfo.innerHTML = '<p style="color:red;font-weight:bold;">Игра окончена!</p>';
         } else if (state.currentPlayer === this.gameClient.playerId) {
+            this.isShooting = false;
+            this.showActionButtons();
             currentInfo.innerHTML = '<p style="color:green;font-weight:bold;">🎯 Ваш ход! Выберите цель:</p>';
             document.getElementById('actionButtons').style.display = 'block';
             this.createShootButtons(state.players);
@@ -100,7 +150,9 @@ export class GameScreen {
                     const btn = document.createElement('button');
                     btn.textContent = `🎯 Выстрелить в ${player.name}`;
                     btn.addEventListener('click', () => {
-                        this.gameClient.shoot(player.id);
+                        if (!this.isShooting) {
+                            this.performShot(player.id);
+                        }
                     });
                     container.appendChild(btn);
                 }
@@ -111,6 +163,8 @@ export class GameScreen {
     showShotResult(result) {
         const resultDiv = document.getElementById('shotResultDisplay');
         if (!resultDiv) return;
+        
+        this.hideBarrelAnimation();
         
         resultDiv.style.display = 'block';
         resultDiv.className = this.getResultClass(result);
@@ -123,6 +177,13 @@ export class GameScreen {
         setTimeout(() => {
             if (resultDiv && !result.gameOver) {
                 resultDiv.style.display = 'none';
+            }
+            
+            if (!result.gameOver && result.isSelfShot && !result.hit) {
+                this.isShooting = false;
+                this.showActionButtons();
+            } else {
+                this.isShooting = false;
             }
         }, 3000);
     }
