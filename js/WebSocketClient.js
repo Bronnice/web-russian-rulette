@@ -9,8 +9,7 @@ export default class WebSocketClient {
     connect(host) {
         return new Promise((resolve, reject) => {
             try {
-                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                const wsUrl = `${protocol}//${host}`;
+                const wsUrl = `wss://${host}`;
                 console.log('Connecting to WebSocket:', wsUrl);
                 
                 this.ws = new WebSocket(wsUrl);
