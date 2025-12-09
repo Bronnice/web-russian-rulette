@@ -5,9 +5,13 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "netlify-dev": "netlify dev"
   },
   "dependencies": {
+    "@netlify/blobs": "^8.1.0",
+    "@netlify/functions": "^2.8.2",
+    "ably": "^2.0.0",
     "express": "^4.18.2",
     "ws": "^8.13.0"
   },

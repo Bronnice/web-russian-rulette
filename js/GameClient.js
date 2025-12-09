@@ -1,4 +1,4 @@
-import WebSocketClient from './WebSocketClient.js';
+import AblyClient from './AblyClient.js';
 import { ScreenManager } from './screens/ScreenManager.js';
 import { NameScreen } from './screens/NameScreen.js';
 import { LobbyScreen } from './screens/LobbyScreen.js';
@@ -10,8 +10,8 @@ export default class GameClient {
         this.playerId = null;
         this.playerName = 'Игрок';
         this.gameId = null;
-        
-        this.wsClient = new WebSocketClient();
+
+        this.wsClient = new AblyClient();
         this.screenManager = new ScreenManager();
         
         this.init();
@@ -96,14 +96,11 @@ export default class GameClient {
 
     async connect() {
         try {
-            const host = window.location.hostname === 'localhost' 
-                ? 'localhost:3000' 
-                : window.location.host;
-            
-            await this.wsClient.connect(host);
-            
+            await this.wsClient.connect();
+            this.playerId = this.wsClient.clientId;
+
             this.wsClient.send('setName', { name: this.playerName });
-            
+
         } catch (error) {
             console.error('Connection error:', error);
             this.nameScreen.showError('nameError', 'Ошибка подключения к серверу');
@@ -135,30 +132,27 @@ export default class GameClient {
 
     handleGameCreated(data) {
         this.gameId = data.gameId;
-        this.playerId = data.playerId;
+        this.playerId = this.wsClient.clientId;
         this.playerName = data.playerName || this.playerName;
-        
+
         this.waitingScreen.updateGameInfo(this.gameId, this.playerName);
         if (data.state) {
             this.waitingScreen.updatePlayersList(data.state.players);
         }
-        if (data.onlinePlayers) {
-            this.waitingScreen.updateOnlinePlayersCount(data.onlinePlayers);
-        }
-        
+
         this.screenManager.showScreen('waitingScreen');
     }
 
     handleJoinedGame(data) {
         this.gameId = data.gameId;
-        this.playerId = data.playerId;
+        this.playerId = this.wsClient.clientId;
         this.playerName = data.playerName || this.playerName;
-        
+
         this.gameScreen.updateGameInfo(this.playerName, this.gameId);
         if (data.state) {
             this.gameScreen.updateGameState(data.state);
         }
-        
+
         this.screenManager.showScreen('gameScreen');
     }
 
@@ -210,15 +204,12 @@ export default class GameClient {
 
     handleHasActiveGame(data) {
         this.gameId = data.gameId;
-        this.playerId = data.playerId;
-        
+        this.playerId = this.wsClient.clientId;
+
         if (data.gameStarted) {
             this.joinGame(data.gameId);
         } else {
             this.screenManager.showScreen('waitingScreen');
-            if (data.onlinePlayers) {
-                this.waitingScreen.updateOnlinePlayersCount(data.onlinePlayers);
-            }
             setTimeout(() => {
                 this.joinGame(data.gameId);
             }, 500);
